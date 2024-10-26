@@ -21,63 +21,102 @@ in two integer A and B values, where A+B+C < 50. Finally, submit successful path
 Let's see if this works!
 
 '''
-#imports
-
 import numpy as np
 from scipy.optimize import fsolve
+from collections import deque
 
+print("----------------Begin program----------------")
+print("---------------------------------------------")
+print("---------------------------------------------")
 
-#1. Get valid knight moves (valid neighbors). 
-#Constraints for validity: not parent node, not a previously "visited" node, and not out of bounds (legal move).
-
-# def knight_moves(board_size, start):
-#     # Knight's possible moves
-#     moves = [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
-    
-#     def is_valid(x, y):
-#         return 0 <= x < board_size and 0 <= y < board_size
-    
-#     def backtrack(x, y, path):
-#         # Append the current position to the path
-#         path.append((x, y))
-        
-#         # Check all possible knight moves
-#         for dx, dy in moves:
-#             new_x, new_y = x + dx, y + dy
-            
-#             if is_valid(new_x, new_y) and (new_x, new_y) not in path:
-#                 backtrack(new_x, new_y, path)
-        
-#         # Remove the position after exploring all moves (backtrack)
-#         path.pop()
-    
-#     # Start the backtracking from the initial position
-#     paths = []
-#     backtrack(start[0], start[1], [])
-#     return paths
-
-# def create_weighted_grid():
-    # dt = {}
-
-    # for x in range(3):
-    #     dt[(i,0)] = 'A'
-    #     dt[(i,1)] = 'A'
-    # for x in range(2):
-    #     dt[(i,2)] = 'A'
-    #     dt[(i,3)] = 'A'
-    # for x in 
-
-    # return dt
-
-
+# Create dictionary of A,B and C values. Refer to image to see assignations.
 letter_book = {'A': [(0,0), (1,0),(2,0), (0,1), (1,1),(2,1), (0,2), (1,2), (0,3 ), (1,3 ), (0,4 ), (0,5 )],
                'B':  [(3,0 ), (4,0 ), (3,1 ), (4,1 ),(2,2), (3,2),(2,3),(3,3), (1,4),(2,4), (1,5),(2,5) ] ,
               'C': [(5,0 ),(5,1), (4,2), (5,2),(4,3), (5,3) , (3,4), (4,4), (5,4),(3,5), (4,5), (5,5)  ]}
 
  
 
+#1. Get valid knight moves (valid neighbors). 
+#Constraints for validity: not parent node, not a previously "visited" node, and not out of bounds (legal move).
 
-# #2. Delete paths that use visited squares!
+def convert_eq_string_numeric(eq):
+    '''convert the string equation to numeric'''
+    pass
+  
+# def passes_blackout_x_then_y(path):
+#     px,py = path[0]
+#     blackout = set()
+#     for next_x,next_y in path[1:]:
+#         if (next_x, next_y) in blackout:
+#             return False
+#         else:
+#             if px - next_x > 0: 
+#                 #take away left x squares
+#                 x1 = px -1
+#                 x2 = px -2
+
+            
+#         px, py = next_x, next_y
+
+        
+
+def is_valid(x, y, board_size):
+    return 0 <= x < board_size and 0 <= y < board_size
+
+def get_paths(board_size, start, end, depth_limit):
+    # Knight's possible moves
+    moves = [ (2, 1), (1, 2), (-1, 2), (-2, 1),(-2, -1), (-1, -2), (1, -2), (2, -1) ]
+
+    def backtrack(x, y, visited, path):
+        # Append the current position to the path
+        path.append((x, y))
+        visited.add((x, y))
+        
+        #add blackout squares to blackout
+    
+
+        #IF you hit the end square: add that path!
+        if depth_limit <= len(path) and (x,y) == end:
+            all_paths.append(path.copy())
+            # print(path)
+        else:
+        # Check all possible knight moves
+            for dx, dy in moves:
+                new_x, new_y = x + dx, y + dy
+
+                #check if each move is a legal step (not off the board), not previously visited
+                if is_valid(new_x, new_y, board_size) and (new_x, new_y) not in visited:
+                    if len(path) < depth_limit: #check if we exceeded depth limit
+                        backtrack(new_x, new_y, visited, path)
+            
+        # Remove the position after exploring all moves (backtrack)
+        visited.remove((x, y))
+        path.pop()
+    
+    all_paths = []
+    backtrack(start[0], start[1], set(), [])
+    return all_paths
+
+board_size = 6
+back_start = (0, 5)
+back_end = (5,0)
+for_start = (0,0)
+for_end = (5,5)
+# if end == (5,0):
+#     type = "Backward"
+# else:
+#     type = "Forward"
+depth_limit = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves.
+backward_paths = get_paths(board_size, back_start, back_end, depth_limit)
+forward_paths = get_paths(board_size, for_start, for_end, depth_limit)
+#NOTE: I haven't accounted for blackout squares yet, so some of these paths may be invalid due to re-traversing "used" squares
+print(f"Number of valid Forward paths at depth_limit {depth_limit}: ", len(forward_paths)) 
+print(f"Number of valid Backward paths at depth_limit {depth_limit}: ", len(backward_paths)) 
+
+backward_path_equations = {}
+forward_path_equations = {}
+
+#Generate equation from Path!
 def create_equation(path):
     eq = ''
     for i in path:    
@@ -88,100 +127,97 @@ def create_equation(path):
         else:
             eq+=('C')
     
-    return eq
-# #3. Map each node in path to a letter, then string together an equation
-
-# board_size = 6
-# start_position = (0, 0)
-# forward_paths = knight_moves(board_size, start_position)
-
-# # Printing the results
-# for path in forward_paths:
-#     print(path)
-
-def get_blackout_squares_x_then_y(curr, prev):
-    if curr and prev:
-        curr_x, curr_y = curr[0], curr[1]
-        prev_x, prev_y = prev[0], prev[1]
-    
-    curr_x
-
-def is_valid(x, y, board_size):
-        return 0 <= x < board_size and 0 <= y < board_size
-
-def knight_moves(board_size, start, end, depth):
-    # Knight's possible moves
-    moves = [ (2, 1), (1, 2), (-1, 2), (-2, 1),(-2, -1), (-1, -2), (1, -2), (2, -1) ]
-    
-    def backtrack(x, y, visited, path):
-        # Append the current position to the path
-        path.append((x, y))
-        visited.add((x, y))
-        #add blackout squares to visited
-        
-
-        # if depth_limit == len(path):
-
-        #IF you hit the end square: add that path!
-        if (x,y) == end:
-            all_paths.append(path.copy())
-            print(path)
+    l= 0
+    r=0
+    q= deque()
+    q.append("(")
+    while r < len(eq):
+        q.append(eq[r])
+        r+=1
+        if r< len(eq):
+            if eq[l]== eq[r]:
+                q.append("+")
+            else:
+                q.append(")")
+                q.appendleft("(")
+                q.append("*")
         else:
-        # Check all possible knight moves
-            for dx, dy in moves:
-                new_x, new_y = x + dx, y + dy
+            q.append(")")
+        l+=1
+    letter_equation = eq
+    equation_math_string = ''.join(q)
 
-                #check if each move is a legal step (not off the board), not previously visited
-                if is_valid(new_x, new_y, board_size) and (new_x, new_y) not in visited:
-                    backtrack(new_x, new_y, visited, path)
-            
-        # Remove the position after exploring all moves (backtrack)
-        visited.remove((x, y))
-        path.pop()
-    
-    all_paths = []
-    backtrack(start[0], start[1], set(), [])
-    return all_paths
-
-# Example usage
-board_size = 6
-start = (0, 0)
-end = (5,5)
-depth_limit = 7  # Set depth limit as needed
-forwards_paths = knight_moves(board_size, start, end, depth_limit)
-
-# Printing the results
-# for path in forward_paths:
-#     print(path)
+    return [letter_equation, equation_math_string]
 
 
+feqs= []
+beqs = []
+
+for path in forward_paths:
+    lst = create_equation(path)
+    feqs.append(lst[1])
+    forward_path_equations[str(path)] = lst
+
+for path in backward_paths:
+    lst = create_equation(path) #returns a list of letter eq, num eq
+    beqs.append(lst[1])
+    backward_path_equations[str(path)] = lst #assign to path in dict. KEY is path of knight move nodes as STRING, VAL is lst above [letter eq, num eq]
+
+# print("FORWARD PATH EQUATIONS: ", forward_path_equations)
+# print("------------------------------")
+# print("BACKWARD PATH EQUATIONS: ", backward_path_equations)
 
 
-# # Equation Solver
-# def equations(vars, C):
-#     a, b = vars
-#     x = (2024 - 3*C)/C #todo: fix this to change according to eq passed in
-#     y = x+1            #same here
-#     forward = ((3*a*b) + (2*b)) - y
-#     backward = (((a**2)*b + a) *b) - x
-#     return [backward, forward]
+# Equation Solver
 
 
-# def solver():
-#     # Initial guesses for x and y
-#     initial_guesses = [1, 1]
+def equations(vars, constant, f,b):
+    A, B = vars
+    C = constant
+    # feq = f + ' - 2024'
+    # beq = b + ' - 2024'
+    feq = eval(f.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
+    beq = eval(b.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
+    return [beq, feq]
 
-#     # Solve the system of equations, where C can be a value from 1-50 to find A and B values.
-#     res=[]
-#     for C in range(1,51):
-#         solution = fsolve(equations, initial_guesses, C)
-#         if solution[0].is_integer() or solution[1].is_integer():
-#             res.append(solution)
-#         if solution[0] + solution[1] + C < 50: #A+B+C < 50
-#             print("A+B+C < 50: ", solution, "C: ", C)
-#             if solution[0].is_integer() or solution[1].is_integer():
-#                 res.append(solution)
-#     return res
+def is_clean_decimal(value):
+    return abs(value- round(value)) < 1e-10
      
-# print("Res List: " , solver())
+def solver(feq, beq):
+    initial_guesses = [1, 1]
+    res=[]
+     
+    for constant in range(1,51):
+        def wrapper(vars):
+            return equations(vars, constant, feq, beq)
+        solution = fsolve(wrapper, initial_guesses)
+        
+        #check if these are valid solution guesses
+        what_beq_eval, what_feq_eval =equations(solution, constant, feq, beq)
+
+        if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
+            if solution[0] + solution[1] + constant < 50: #A+B+C < 50
+                if solution[0] >0 and solution[1] > 0 and constant > 0: #all positive
+                    # print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant)
+                    a = solution[0]
+                    b = solution[1]
+                    if is_clean_decimal(a) and  is_clean_decimal(b):
+                        res.append((a,b,constant))
+    return res
+     
+
+for f in feqs:
+    for b in beqs:
+        results = solver(f,b)
+        print("Valid Results for Forward: ", f,  " and Backward: ", b, " : ", results)
+        print("\n")
+
+# feq = '((A+A)*C+C+C+C+C) - 2024'
+# beq = '((((A+A)*C+C+C)*B)*C) - 2024'
+# results = solver('(((A+A)*B)*C+C+C+C)','((((A+A)*C+C+C)*B)*C)' )
+ 
+# for i in results:
+#     if i[0] 
+# print("Valid Result List: " , results)
+
 
