@@ -67,7 +67,9 @@ def get_paths(board_size, start, end, depth_limit):
     # Knight's possible moves
     moves = [ (2, 1), (1, 2), (-1, 2), (-2, 1),(-2, -1), (-1, -2), (1, -2), (2, -1) ]
 
-    def backtrack(x, y, visited, path):
+    def backtrack(x, y, visited, path, depth):
+        if depth > depth_limit:
+            return #exit early if already exceeding depth
         # Append the current position to the path
         path.append((x, y))
         visited.add((x, y))
@@ -76,7 +78,7 @@ def get_paths(board_size, start, end, depth_limit):
     
 
         #IF you hit the end square: add that path!
-        if depth_limit <= len(path) and (x,y) == end:
+        if (x,y) == end: #len(path) <= depth_limit and 
             all_paths.append(path.copy())
             # print(path)
         else:
@@ -87,14 +89,14 @@ def get_paths(board_size, start, end, depth_limit):
                 #check if each move is a legal step (not off the board), not previously visited
                 if is_valid(new_x, new_y, board_size) and (new_x, new_y) not in visited:
                     if len(path) < depth_limit: #check if we exceeded depth limit
-                        backtrack(new_x, new_y, visited, path)
+                        backtrack(new_x, new_y, visited, path, depth+1)
             
         # Remove the position after exploring all moves (backtrack)
         visited.remove((x, y))
         path.pop()
     
     all_paths = []
-    backtrack(start[0], start[1], set(), [])
+    backtrack(start[0], start[1], set(), [], 0)
     return all_paths
 
 board_size = 6
@@ -178,16 +180,17 @@ def equations(vars, constant, f,b):
     # beq = b + ' - 2024'
     feq = eval(f.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
     beq = eval(b.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
+    # beq = 0
     return [beq, feq]
 
 def is_clean_decimal(value):
     return abs(value- round(value)) < 1e-10
      
 def solver(feq, beq):
-    initial_guesses = [1, 1]
+    initial_guesses = [8, 16]
     res=[]
      
-    for constant in range(1,51):
+    for constant in [1, 2, 4, 8, 11, 22, 23, 44, 46]:
         def wrapper(vars):
             return equations(vars, constant, feq, beq)
         solution = fsolve(wrapper, initial_guesses)
@@ -198,19 +201,22 @@ def solver(feq, beq):
         if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
             if solution[0] + solution[1] + constant < 50: #A+B+C < 50
                 if solution[0] >0 and solution[1] > 0 and constant > 0: #all positive
-                    # print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant)
+                    # print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant, "where f: ", feq, "and b: ", beq)
                     a = solution[0]
-                    b = solution[1]
+                    b = solution[1] 
                     if is_clean_decimal(a) and  is_clean_decimal(b):
-                        res.append((a,b,constant))
+                        res.append((a,b,constant, feq, beq))
     return res
      
-
+final = []
 for f in feqs:
     for b in beqs:
         results = solver(f,b)
+        if results:
+            final.append(results)
         print("Valid Results for Forward: ", f,  " and Backward: ", b, " : ", results)
         print("\n")
+print("-----------FINAL:-------------", final)
 
 # feq = '((A+A)*C+C+C+C+C) - 2024'
 # beq = '((((A+A)*C+C+C)*B)*C) - 2024'
