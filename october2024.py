@@ -78,7 +78,7 @@ def get_paths(board_size, start, end, depth_limit):
     
 
         #IF you hit the end square: add that path!
-        if (x,y) == end: #len(path) <= depth_limit and 
+        if (x,y) == end and len(path) == depth_limit: 
             all_paths.append(path.copy())
             # print(path)
         else:
@@ -104,16 +104,11 @@ back_start = (0, 5)
 back_end = (5,0)
 for_start = (0,0)
 for_end = (5,5)
-# if end == (5,0):
-#     type = "Backward"
-# else:
-#     type = "Forward"
-depth_limit = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves.
-backward_paths = get_paths(board_size, back_start, back_end, depth_limit)
-forward_paths = get_paths(board_size, for_start, for_end, depth_limit)
+depth_limit_f = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves.
+depth_limit_b = 7 #using paths at EXACTLY this length.
+backward_paths = get_paths(board_size, back_start, back_end, depth_limit_b)
+forward_paths = get_paths(board_size, for_start, for_end, depth_limit_f)
 #NOTE: I haven't accounted for blackout squares yet, so some of these paths may be invalid due to re-traversing "used" squares
-print(f"Number of valid Forward paths at depth_limit {depth_limit}: ", len(forward_paths)) 
-print(f"Number of valid Backward paths at depth_limit {depth_limit}: ", len(backward_paths)) 
 
 backward_path_equations = {}
 forward_path_equations = {}
@@ -155,6 +150,17 @@ def create_equation(path):
 feqs= []
 beqs = []
 
+forward_paths.remove([(0, 0), (2, 1), (4, 2), (5, 4), (3, 5), (4, 3), (5, 5)] )
+forward_paths.remove([(0, 0), (2, 1), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
+forward_paths.remove([(0, 0), (1, 2), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
+forward_paths.remove( [(0, 0), (2, 1), (4, 2), (3, 4), (2, 2), (4, 3), (5, 5)] )
+
+backward_paths.remove([(0, 5), (2, 4), (3, 2), (1, 3), (3, 4), (4, 2), (5, 0)] )
+
+
+print(f"Number of valid Forward paths at depth_limit {depth_limit_f}: ", len(forward_paths)) 
+print(f"Number of valid Backward paths at depth_limit {depth_limit_b}: ", len(backward_paths)) 
+
 for path in forward_paths:
     lst = create_equation(path)
     feqs.append(lst[1])
@@ -184,20 +190,29 @@ def is_clean_decimal(value):
     return abs(value- round(value)) < 1e-10
      
 def solver(feq, beq):
-    initial_guesses = [4, 8]
+    initial_guesses = [5, 17]
     res=[]
      
-    for constant in [1, 2, 4, 8, 11, 23, 44, 46]: #[1, 2, 4, 8, 11, 22, 23, 44, 46]
+    for constant in range(10, 22, 2): #[1, 2, 4, 8, 11, 22, 23, 44, 46]
         def wrapper(vars):
             return equations(vars, constant, feq, beq)
         solution = fsolve(wrapper, initial_guesses)
-        
+
+        # for initial_guess in [(x,y) for x in range(1,10) for y in range(1,10)]:
+        #     solution = fsolve(lambda vars: equations(vars, constant, feq, beq), initial_guess)
+        #     # what_beq_eval, what_feq_eval =equations(solution, constant, feq, beq)
+        #     # if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
+        #     A, B = solution
+        #     if A>0 and B>0 and A+B+constant < 50:
+        #         if is_clean_decimal(A) and  is_clean_decimal(B):
+        #             res.append((A, B, constant, feq, beq))
+
         #check if these are valid solution guesses
         what_beq_eval, what_feq_eval =equations(solution, constant, feq, beq)
 
         if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
             if solution[0] + solution[1] + constant < 50: #A+B+C < 50
-                if solution[0] >0 and solution[1] > 0 and constant > 0: #all positive
+                if solution[0] >0 and solution[1] > 0: #all positive
                     # print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant, "where f: ", feq, "and b: ", beq)
                     a = solution[0]
                     b = solution[1] 
@@ -237,3 +252,8 @@ b_nodes = []
 
 # for i in backward_path_equations:
 #     print("Moves: ", i, "B Equation: ", backward_path_equations[i][1])
+
+
+
+#Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 4), (4, 2), (5, 0)] B Equation:  (((A+A+A)*B)*C+C+C) *****!!
+# Moves:  [(0, 0), (2, 1), (1, 3), (3, 2), (5, 3), (3, 4), (5, 5)] F Equation:  (((A+A+A)*B)*C+C+C)             ****!!
