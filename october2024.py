@@ -176,21 +176,18 @@ for path in backward_paths:
 def equations(vars, constant, f,b):
     A, B = vars
     C = constant
-    # feq = f + ' - 2024'
-    # beq = b + ' - 2024'
-    feq = eval(f.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
-    beq = eval(b.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))) - 2024
-    # beq = 0
+    feq = eval(f.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))+ '- 2024')
+    beq = eval(b.replace('A', str(A)).replace('B', str(B)).replace('C', str(C))+ '- 2024')
     return [beq, feq]
 
 def is_clean_decimal(value):
     return abs(value- round(value)) < 1e-10
      
 def solver(feq, beq):
-    initial_guesses = [8, 16]
+    initial_guesses = [4, 8]
     res=[]
      
-    for constant in [1, 2, 4, 8, 11, 22, 23, 44, 46]:
+    for constant in [1, 2, 4, 8, 11, 23, 44, 46]: #[1, 2, 4, 8, 11, 22, 23, 44, 46]
         def wrapper(vars):
             return equations(vars, constant, feq, beq)
         solution = fsolve(wrapper, initial_guesses)
@@ -217,13 +214,26 @@ for f in feqs:
         print("Valid Results for Forward: ", f,  " and Backward: ", b, " : ", results)
         print("\n")
 print("-----------FINAL:-------------", final)
-
-# feq = '((A+A)*C+C+C+C+C) - 2024'
-# beq = '((((A+A)*C+C+C)*B)*C) - 2024'
-# results = solver('(((A+A)*B)*C+C+C+C)','((((A+A)*C+C+C)*B)*C)' )
  
-# for i in results:
-#     if i[0] 
-# print("Valid Result List: " , results)
 
+ 
+ #TODO: Minimize initial guesses with constraints so we dont check negatives, etc.
+ 
+f_nodes = []
+b_nodes = []
 
+# for lst in [[(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')]]:
+#     tup = lst[0]
+#     forward = tup[3]
+#     backward = tup[4]
+#     for val in forward_path_equations.values:
+#         if val[1] == forward:
+#             f_nodes.append(k)
+#     for val in backward_path_equations.values:
+#         if val[1] == backward:
+#             b_nodes.append(k)
+# print("F Path Nodes: ", f_nodes)
+# print("B Path Nodes: ", b_nodes)
+
+# for i in backward_path_equations:
+#     print("Moves: ", i, "B Equation: ", backward_path_equations[i][1])
