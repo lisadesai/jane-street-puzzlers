@@ -225,7 +225,4 @@ print_moves()
 #5. Check if moves use unused squares (manually for now, I didn't create a blackout move check)
 
 #6. Possible Final Answer
-print("Possible Final Answer", "\n", "A= 4  B=7 C=22",  "\n", "Moves:  [(0, 0), (2, 1), (0, 2), (2, 3), (1, 5), (3, 4), (5, 5)] for F Equation:  (((A+A+A)*B+B)*C+C)", "\n", "Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 0), (4, 2), (5, 0)] for B Equation:  (((A+A+A)*B+B)*C+C)")
-# A= 4  B=7 C=22
-# Moves:  [(0, 0), (2, 1), (0, 2), (2, 3), (1, 5), (3, 4), (5, 5)] F Equation:  (((A+A+A)*B+B)*C+C)
-# Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 0), (4, 2), (5, 0)] B Equation:  (((A+A+A)*B+B)*C+C)
+ 
