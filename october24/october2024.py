@@ -37,28 +37,7 @@ letter_book = {'A': [(0,0), (1,0),(2,0), (0,1), (1,1),(2,1), (0,2), (1,2), (0,3 
  
 
 #1. Get valid knight moves (valid neighbors). 
-#Constraints for validity: not parent node, not a previously "visited" node, and not out of bounds (legal move).
-
-def convert_eq_string_numeric(eq):
-    '''convert the string equation to numeric'''
-    pass
-  
-# def passes_blackout_x_then_y(path):
-#     px,py = path[0]
-#     blackout = set()
-#     for next_x,next_y in path[1:]:
-#         if (next_x, next_y) in blackout:
-#             return False
-#         else:
-#             if px - next_x > 0: 
-#                 #take away left x squares
-#                 x1 = px -1
-#                 x2 = px -2
-
-            
-#         px, py = next_x, next_y
-
-        
+#Constraints for validity: not parent node, not a previously "visited" node, and not out of bounds (legal move).        
 
 def is_valid(x, y, board_size):
     return 0 <= x < board_size and 0 <= y < board_size
@@ -69,16 +48,15 @@ def get_paths(board_size, start, end, depth_limit):
 
     def backtrack(x, y, visited, path, depth):
         if depth > depth_limit:
-            return #exit early if already exceeding depth
+            return  #exit early if already exceeding depth
+
         # Append the current position to the path
         path.append((x, y))
         visited.add((x, y))
-        
-        #add blackout squares to blackout
-    
+            
 
         #IF you hit the end square: add that path!
-        if (x,y) == end and len(path) == depth_limit: 
+        if (x,y) == end: # len(path) == depth_limit: 
             all_paths.append(path.copy())
             # print(path)
         else:
@@ -88,7 +66,7 @@ def get_paths(board_size, start, end, depth_limit):
 
                 #check if each move is a legal step (not off the board), not previously visited
                 if is_valid(new_x, new_y, board_size) and (new_x, new_y) not in visited:
-                    if len(path) < depth_limit: #check if we exceeded depth limit
+                    if len(path) < depth_limit:  #check if we exceeded depth limit before recurse again
                         backtrack(new_x, new_y, visited, path, depth+1)
             
         # Remove the position after exploring all moves (backtrack)
@@ -104,8 +82,8 @@ back_start = (0, 5)
 back_end = (5,0)
 for_start = (0,0)
 for_end = (5,5)
-depth_limit_f = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves.
-depth_limit_b = 7 #using paths at EXACTLY this length.
+depth_limit_f = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves. 5-6 yields too few paths.
+depth_limit_b = 7 
 backward_paths = get_paths(board_size, back_start, back_end, depth_limit_b)
 forward_paths = get_paths(board_size, for_start, for_end, depth_limit_f)
 #NOTE: I haven't accounted for blackout squares yet, so some of these paths may be invalid due to re-traversing "used" squares
@@ -113,7 +91,7 @@ forward_paths = get_paths(board_size, for_start, for_end, depth_limit_f)
 backward_path_equations = {}
 forward_path_equations = {}
 
-#Generate equation from Path!
+#2. Generate equation from path of moves
 def create_equation(path):
     eq = ''
     for i in path:    
@@ -150,12 +128,13 @@ def create_equation(path):
 feqs= []
 beqs = []
 
-forward_paths.remove([(0, 0), (2, 1), (4, 2), (5, 4), (3, 5), (4, 3), (5, 5)] )
-forward_paths.remove([(0, 0), (2, 1), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
-forward_paths.remove([(0, 0), (1, 2), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
-forward_paths.remove( [(0, 0), (2, 1), (4, 2), (3, 4), (2, 2), (4, 3), (5, 5)] )
 
-backward_paths.remove([(0, 5), (2, 4), (3, 2), (1, 3), (3, 4), (4, 2), (5, 0)] )
+# forward_paths.remove([(0, 0), (2, 1), (4, 2), (5, 4), (3, 5), (4, 3), (5, 5)] )
+# forward_paths.remove([(0, 0), (2, 1), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
+# forward_paths.remove([(0, 0), (1, 2), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
+# forward_paths.remove( [(0, 0), (2, 1), (4, 2), (3, 4), (2, 2), (4, 3), (5, 5)] )
+
+# backward_paths.remove([(0, 5), (2, 4), (3, 2), (1, 3), (3, 4), (4, 2), (5, 0)] )
 
 
 print(f"Number of valid Forward paths at depth_limit {depth_limit_f}: ", len(forward_paths)) 
@@ -176,9 +155,7 @@ for path in backward_paths:
 # print("BACKWARD PATH EQUATIONS: ", backward_path_equations)
 
 
-# Equation Solver
-
-
+# 3. Equation Solver
 def equations(vars, constant, f,b):
     A, B = vars
     C = constant
@@ -190,10 +167,10 @@ def is_clean_decimal(value):
     return abs(value- round(value)) < 1e-10
      
 def solver(feq, beq):
-    initial_guesses = [5, 17]
+    initial_guesses = [4, 8] #test values
     res=[]
      
-    for constant in range(10, 22, 2): #[1, 2, 4, 8, 11, 22, 23, 44, 46]
+    for constant in [1, 2, 4, 8, 11, 22, 23, 44, 46]: #[1, 2, 4, 8, 11, 22, 23, 44, 46]
         def wrapper(vars):
             return equations(vars, constant, feq, beq)
         solution = fsolve(wrapper, initial_guesses)
@@ -213,7 +190,7 @@ def solver(feq, beq):
         if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
             if solution[0] + solution[1] + constant < 50: #A+B+C < 50
                 if solution[0] >0 and solution[1] > 0: #all positive
-                    # print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant, "where f: ", feq, "and b: ", beq)
+                    print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant, "where f: ", feq, "and b: ", beq)
                     a = solution[0]
                     b = solution[1] 
                     if is_clean_decimal(a) and  is_clean_decimal(b):
@@ -232,7 +209,6 @@ print("-----------FINAL:-------------", final)
  
 
  
- #TODO: Minimize initial guesses with constraints so we dont check negatives, etc.
  
 f_nodes = []
 b_nodes = []
