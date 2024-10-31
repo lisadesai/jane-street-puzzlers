@@ -3,3 +3,4 @@ Notes for next time:
 - Iterate quickly with half baked solution > Wait until fully created to Iterate
 - Toggle "levers" earlier on (depth limit, only using 1 forward/backward, use constraints to limit (x,y) in fsolve, limit range of C value)
 - Optimize initial guesses to be within constraints.... find optimal start value for intiial guesses
+

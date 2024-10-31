@@ -8,11 +8,11 @@ I thought the easiest way to approach this is using a brute force exhaustive sea
 
 This is my first time solving a JS Puzzle, so I'm not really considering optimization or anything, I just want an answer! :)
 
-Method: find all knight paths from Start to End (both A1-C5 (Forward) and A5-C1 (Backward) cases) while keeping track of the letter of the square,
+Method: find all knight paths from Start to End (both A1-F6 (Forward) and A6-F1 (Backward) cases) while keeping track of the letter of the square,
 create equations out of each knight path, then plug a C value to get all corresponding A and B values until an integer pair of A and B is found.
 
 The board looks like a graph, so recursively backtracking seems like a good method to find
-all the possible knight paths. This is for the FORWARD (F) knight traversal paths. Then, we repeat for the BACKWARD (B) paths.
+all the possible knight permutations. This is for the FORWARD (F) knight traversal paths. Then, we repeat for the BACKWARD (B) paths.
 
 Then, since we have an optimization math problem here given 3 variables but only 2 equations, 
 we try every combination of F/B paths, plugging C from range [1,49] until we get one combination of paths that results
@@ -27,18 +27,15 @@ from collections import deque
 
 print("----------------Begin program----------------")
 print("---------------------------------------------")
-print("---------------------------------------------")
 
-# Create dictionary of A,B and C values. Refer to image to see assignations.
+# 0. Create dictionary of A, B and C values. Refer to image to see assignations.
 letter_book = {'A': [(0,0), (1,0),(2,0), (0,1), (1,1),(2,1), (0,2), (1,2), (0,3 ), (1,3 ), (0,4 ), (0,5 )],
                'B':  [(3,0 ), (4,0 ), (3,1 ), (4,1 ),(2,2), (3,2),(2,3),(3,3), (1,4),(2,4), (1,5),(2,5) ] ,
               'C': [(5,0 ),(5,1), (4,2), (5,2),(4,3), (5,3) , (3,4), (4,4), (5,4),(3,5), (4,5), (5,5)  ]}
 
  
 
-#1. Get valid knight moves (valid neighbors). 
-#Constraints for validity: not parent node, not a previously "visited" node, and not out of bounds (legal move).        
-
+#1. Get valid knight moves based on puzzle constraints. 
 def is_valid(x, y, board_size):
     return 0 <= x < board_size and 0 <= y < board_size
 
@@ -55,7 +52,7 @@ def get_paths(board_size, start, end, depth_limit):
         visited.add((x, y))
             
 
-        #IF you hit the end square: add that path!
+        #If you hit the end square: add that path!
         if (x,y) == end: # len(path) == depth_limit: 
             all_paths.append(path.copy())
             # print(path)
@@ -82,16 +79,20 @@ back_start = (0, 5)
 back_end = (5,0)
 for_start = (0,0)
 for_end = (5,5)
-depth_limit_f = 7  #prevents program from timing out due to recursion. Increase/decrease as needed, but 7 is a good start to prevent overlapping moves. 5-6 yields too few paths.
+depth_limit_f = 7  #Prevents long run time due to deep recursion. 
 depth_limit_b = 7 
 backward_paths = get_paths(board_size, back_start, back_end, depth_limit_b)
 forward_paths = get_paths(board_size, for_start, for_end, depth_limit_f)
+
 #NOTE: I haven't accounted for blackout squares yet, so some of these paths may be invalid due to re-traversing "used" squares
 
+
+
+
+#2. Generate equation from path of moves
 backward_path_equations = {}
 forward_path_equations = {}
 
-#2. Generate equation from path of moves
 def create_equation(path):
     eq = ''
     for i in path:    
@@ -101,7 +102,6 @@ def create_equation(path):
             eq+=('B')
         else:
             eq+=('C')
-    
     l= 0
     r=0
     q= deque()
@@ -125,35 +125,26 @@ def create_equation(path):
     return [letter_equation, equation_math_string]
 
 
-feqs= []
-beqs = []
-
-
-# forward_paths.remove([(0, 0), (2, 1), (4, 2), (5, 4), (3, 5), (4, 3), (5, 5)] )
-# forward_paths.remove([(0, 0), (2, 1), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
-# forward_paths.remove([(0, 0), (1, 2), (3, 3), (5, 4), (3, 5), (4, 3), (5, 5)] )
-# forward_paths.remove( [(0, 0), (2, 1), (4, 2), (3, 4), (2, 2), (4, 3), (5, 5)] )
-
-# backward_paths.remove([(0, 5), (2, 4), (3, 2), (1, 3), (3, 4), (4, 2), (5, 0)] )
-
-
 print(f"Number of valid Forward paths at depth_limit {depth_limit_f}: ", len(forward_paths)) 
 print(f"Number of valid Backward paths at depth_limit {depth_limit_b}: ", len(backward_paths)) 
 
-for path in forward_paths:
-    lst = create_equation(path)
-    feqs.append(lst[1])
-    forward_path_equations[str(path)] = lst
+def create_feq_beq():
+    feqs= []
+    beqs = []
 
-for path in backward_paths:
-    lst = create_equation(path) #returns a list of letter eq, num eq
-    beqs.append(lst[1])
-    backward_path_equations[str(path)] = lst #assign to path in dict. KEY is path of knight move nodes as STRING, VAL is lst above [letter eq, num eq]
+    for path in forward_paths:
+        lst = create_equation(path)
+        feqs.append(lst[1])
+        forward_path_equations[str(path)] = lst
 
-# print("FORWARD PATH EQUATIONS: ", forward_path_equations)
-# print("------------------------------")
-# print("BACKWARD PATH EQUATIONS: ", backward_path_equations)
+    for path in backward_paths:
+        lst = create_equation(path)
+        beqs.append(lst[1])
+        backward_path_equations[str(path)] = lst #KEY is path of moves as string, VAL is lst above [letter eq, num eq]
 
+    return feqs, beqs
+
+feqs, beqs = create_feq_beq()
 
 # 3. Equation Solver
 def equations(vars, constant, f,b):
@@ -167,69 +158,74 @@ def is_clean_decimal(value):
     return abs(value- round(value)) < 1e-10
      
 def solver(feq, beq):
-    initial_guesses = [4, 8] #test values
+    initial_guesses = [4, 8] #Test values, randomly picked from factors of 24
     res=[]
      
-    for constant in [1, 2, 4, 8, 11, 22, 23, 44, 46]: #[1, 2, 4, 8, 11, 22, 23, 44, 46]
+    for constant in [1,2,4,8,11,22,23,44,46]: #Test: use factors of 2024 < 50 to ensure even divisibility first
         def wrapper(vars):
             return equations(vars, constant, feq, beq)
         solution = fsolve(wrapper, initial_guesses)
 
-        # for initial_guess in [(x,y) for x in range(1,10) for y in range(1,10)]:
-        #     solution = fsolve(lambda vars: equations(vars, constant, feq, beq), initial_guess)
-        #     # what_beq_eval, what_feq_eval =equations(solution, constant, feq, beq)
-        #     # if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
-        #     A, B = solution
-        #     if A>0 and B>0 and A+B+constant < 50:
-        #         if is_clean_decimal(A) and  is_clean_decimal(B):
-        #             res.append((A, B, constant, feq, beq))
-
         #check if these are valid solution guesses
         what_beq_eval, what_feq_eval =equations(solution, constant, feq, beq)
 
+        #Check against non-negative and A+B+C<50 constraints
         if np.isclose(what_beq_eval, 0, atol=1e-10) and np.isclose(what_feq_eval, 0, atol=1e-10):
-            if solution[0] + solution[1] + constant < 50: #A+B+C < 50
-                if solution[0] >0 and solution[1] > 0: #all positive
-                    print("A+B+C < 50: ", "A: " , solution[0], "B: ", solution[1], "C: ", constant, "where f: ", feq, "and b: ", beq)
+            if solution[0] + solution[1] + constant < 50:  
+                if solution[0] >0 and solution[1] > 0:  
                     a = solution[0]
                     b = solution[1] 
                     if is_clean_decimal(a) and  is_clean_decimal(b):
                         res.append((a,b,constant, feq, beq))
     return res
      
-final = []
-for f in feqs:
-    for b in beqs:
-        results = solver(f,b)
-        if results:
-            final.append(results)
-        print("Valid Results for Forward: ", f,  " and Backward: ", b, " : ", results)
-        print("\n")
-print("-----------FINAL:-------------", final)
  
+def print_final_list(feqs, beqs):
+    final = []
+    for f in feqs:
+        for b in beqs:
+            results = solver(f,b)
+            if results:
+                final.append(results)
+            print("Valid Results for Forward: ", f,  " and Backward: ", b, " : ", results)
+            print("\n")
+    print("----------------------------------FINAL:----------------------------------: ")
+    print("\n")
+    print(final)
+    print("\n")
+    return final
+
+final = print_final_list(feqs, beqs)
 
  
- 
-f_nodes = []
-b_nodes = []
+ #4. Get moves from final equations  
+def print_moves():
+    f_nodes = set()
+    b_nodes = set()
+    for lst in final:
+        sol = lst[0]
+        a ,b,c = sol[0], sol[1], sol[2]
+        forward, backward = sol[3], sol[4]
 
-# for lst in [[(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')], [(2.0000000000000004, 15.000000000000007, 22, '(((A+A+A)*B)*C+C+C)', '((((A)*B+B)*A)*C+C+C)')]]:
-#     tup = lst[0]
-#     forward = tup[3]
-#     backward = tup[4]
-#     for val in forward_path_equations.values:
-#         if val[1] == forward:
-#             f_nodes.append(k)
-#     for val in backward_path_equations.values:
-#         if val[1] == backward:
-#             b_nodes.append(k)
-# print("F Path Nodes: ", f_nodes)
-# print("B Path Nodes: ", b_nodes)
+        for key, val in forward_path_equations.items():
+            if val[1] == forward:
+                f_nodes.add((round(a), round(b) , round(c), key))
+        for key, val in backward_path_equations.items():
+            if val[1] == backward:
+                b_nodes.add((round(a), round(b) , round(c), key))    
+             
+    print("F Path Moves: ", f_nodes)
+    print("\n")
+    print("B Path Moves: ", b_nodes)
+    print("\n")
 
-# for i in backward_path_equations:
-#     print("Moves: ", i, "B Equation: ", backward_path_equations[i][1])
+print_moves()
 
 
+#5. Check if moves use unused squares (manually for now, I didn't create a blackout move check)
 
-#Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 4), (4, 2), (5, 0)] B Equation:  (((A+A+A)*B)*C+C+C) *****!!
-# Moves:  [(0, 0), (2, 1), (1, 3), (3, 2), (5, 3), (3, 4), (5, 5)] F Equation:  (((A+A+A)*B)*C+C+C)             ****!!
+#6. Possible Final Answer
+print("Possible Final Answer", "\n", "A= 4  B=7 C=22",  "\n", "Moves:  [(0, 0), (2, 1), (0, 2), (2, 3), (1, 5), (3, 4), (5, 5)] for F Equation:  (((A+A+A)*B+B)*C+C)", "\n", "Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 0), (4, 2), (5, 0)] for B Equation:  (((A+A+A)*B+B)*C+C)")
+# A= 4  B=7 C=22
+# Moves:  [(0, 0), (2, 1), (0, 2), (2, 3), (1, 5), (3, 4), (5, 5)] F Equation:  (((A+A+A)*B+B)*C+C)
+# Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 0), (4, 2), (5, 0)] B Equation:  (((A+A+A)*B+B)*C+C)
