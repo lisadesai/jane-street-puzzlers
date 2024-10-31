@@ -1,6 +1,6 @@
 #Knight Moves #6
 
-#Link to puzzle: https://www.janestreet.com/puzzles/current-puzzle/
+#Link to puzzle: https://www.janestreet.com/puzzles/knight-moves-6-index/
 
 '''Intuition: Brute Force to Exhaustive Search. 
 

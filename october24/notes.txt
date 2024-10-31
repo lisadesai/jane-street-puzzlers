@@ -1,6 +1,8 @@
+Link to puzzle: https://www.janestreet.com/puzzles/knight-moves-6-index/
+
 Notes for next time:
 - Matlab solving libraries
 - Iterate quickly with half baked solution > Wait until fully created to Iterate
 - Toggle "levers" earlier on (depth limit, only using 1 forward/backward, use constraints to limit (x,y) in fsolve, limit range of C value)
-- Optimize initial guesses to be within constraints.... find optimal start value for intiial guesses
+- Optimize initial guesses to be within constraints.... find optimal start value for initial guesses
 
