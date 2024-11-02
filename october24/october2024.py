@@ -224,5 +224,7 @@ print_moves()
 
 #5. Check if moves use unused squares (manually for now, I didn't create a blackout move check)
 
-#6. Possible Final Answer
- 
+#6. Possible Final Answer 
+#4, 7, 22
+#Moves:  [(0, 0), (2, 1), (0, 2), (2, 3), (1, 5), (3, 4), (5, 5)] F Equation:  (((A+A+A)*B+B)*C+C)
+#Moves:  [(0, 5), (1, 3), (0, 1), (2, 2), (3, 0), (4, 2), (5, 0)] B Equation:  (((A+A+A)*B+B)*C+C)
